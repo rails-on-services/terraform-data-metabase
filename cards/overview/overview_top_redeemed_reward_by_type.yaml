@@ -1,0 +1,50 @@
+---
+overview_top_redeemed_reward_by_type:
+  name: Overview - Top Redeemed Reward by Type
+  description: Managed by Terraform.
+  native_query: |2
+    WITH date_filter AS (
+        SELECT
+            TIMESTAMP(FORMAT_TIMESTAMP("%Y-%m-%d %H:%M:%S", {{start_date}}), {{timezone}}) AS start_date,
+            TIMESTAMP_ADD(TIMESTAMP(FORMAT_TIMESTAMP("%Y-%m-%d %H:%M:%S", {{end_date}}), {{timezone}}), INTERVAL 24 HOUR) AS end_date
+    )
+
+    SELECT  reward.reward_type AS `reward_type`,
+            count(voucher.id) *reward.cost_of_reward  AS `revenue`
+    FROM `perx-whistler.whistler_views.rewards` AS reward,date_filter
+    INNER JOIN `perx-whistler.whistler_views.vouchers` AS voucher
+    ON reward.id =voucher.source_id AND voucher.source_type='Perx::Reward::Entity'
+    AND reward.tenant=voucher.tenant
+    WHERE   (reward.tenant={{tenant}}  or 1=1)
+    AND voucher.status='redeemed'
+    AND voucher.created_at BETWEEN  date_filter.start_date AND date_filter.end_date
+    GROUP BY reward.reward_type,reward.cost_of_reward
+    ORDER BY 2
+    LIMIT 5
+  variables:
+  - name: start_date
+    type: date
+    display_name: Start Date
+    required: true
+    default: null
+    embedding_param: enabled
+  - name: timezone
+    type: text
+    display_name: Timezone
+    required: true
+    default: Asia/Singapore
+    embedding_param: enabled
+  - name: end_date
+    type: date
+    display_name: 'End Date '
+    required: true
+    default: null
+    embedding_param: enabled
+  - name: tenant
+    type: text
+    display_name: Tenant
+    required: true
+    default: null
+    embedding_param: locked
+  database_id: ${database_id}
+  enable_embedding: true

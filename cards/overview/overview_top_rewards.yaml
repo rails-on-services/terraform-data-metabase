@@ -1,0 +1,52 @@
+---
+overview_top_rewards:
+  name: Overview - Top Rewards
+  description: Managed by Terraform.
+  native_query: |2
+    WITH date_filter AS (
+        SELECT
+            TIMESTAMP(FORMAT_TIMESTAMP("%Y-%m-%d %H:%M:%S", {{start_date}}), {{timezone}}) AS start_date,
+            TIMESTAMP_ADD(TIMESTAMP(FORMAT_TIMESTAMP("%Y-%m-%d %H:%M:%S", {{end_date}}), {{timezone}}), INTERVAL 24 HOUR) AS end_date
+    )
+    SELECT
+        reward.name,
+        SUM(CASE WHEN vouchers.status IN ('issued','redeemed','expired') THEN 1 ELSE 0 END)*cost_of_reward  AS  `issued_count`,
+        SUM(CASE WHEN vouchers.status ='redeemed' THEN 1 ELSE 0 END) *cost_of_reward                        AS  `redeemed_count`
+    FROM
+        `perx-whistler.whistler_views.rewards`  reward, date_filter
+    INNER JOIN `perx-whistler.whistler_views.vouchers` vouchers
+    ON reward.id =vouchers.source_id AND vouchers.source_type='Perx::Reward::Entity' AND reward.tenant=vouchers.tenant
+    WHERE
+      --  (reward_transaction.tenant={{tenant}} or 1=1) AND
+         vouchers.updated_at >= date_filter.start_date
+        AND vouchers.updated_at <= date_filter.end_date
+    GROUP BY  reward.name,reward.cost_of_reward
+    ORDER BY  (CASE WHEN redeemed_count=0 THEN 1 ELSE redeemed_count END  *100)/( CASE WHEN issued_count=0 THEN 1 ELSE issued_count END ) DESC
+    LIMIT 5
+  variables:
+  - name: start_date
+    type: date
+    display_name: Start Date
+    required: true
+    default: null
+    embedding_param: enabled
+  - name: timezone
+    type: text
+    display_name: Timezone
+    required: true
+    default: Asia/Singapore
+    embedding_param: enabled
+  - name: end_date
+    type: date
+    display_name: End Date
+    required: true
+    default: null
+    embedding_param: enabled
+  - name: tenant
+    type: text
+    display_name: Tenant
+    required: true
+    default: null
+    embedding_param: locked
+  database_id: ${database_id}
+  enable_embedding: true

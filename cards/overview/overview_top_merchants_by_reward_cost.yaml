@@ -1,0 +1,49 @@
+---
+overview_top_merchant_by_reward_cost:
+  name: Overview - Top Merchants By Reward Cost
+  description: Managed by Terraform.
+  native_query: |2
+    WITH date_filter AS (
+        SELECT
+            TIMESTAMP(FORMAT_TIMESTAMP("%Y-%m-%d %H:%M:%S", {{start_date}}), {{timezone}}) AS start_date,
+            TIMESTAMP_ADD(TIMESTAMP(FORMAT_TIMESTAMP("%Y-%m-%d %H:%M:%S", {{end_date}}), {{timezone}}), INTERVAL 24 HOUR) AS end_date
+    )
+    SELECT organizations.name  AS`merchant_name`,
+           rewards.cost_of_reward *COUNT(vouchers.id ) as `revenue`
+    FROM `perx-whistler.whistler_views.rewards` AS rewards,date_filter
+    INNER JOIN `perx-whistler.whistler_views.organizations` AS organizations
+    ON rewards.organization_id =organizations.id AND rewards.tenant =organizations.tenant
+    INNER JOIN `perx-whistler.whistler_views.vouchers`AS  vouchers
+    ON rewards.id =vouchers.source_id AND vouchers.source_type='Perx::Reward::Entity'
+    AND rewards.tenant=vouchers.tenant
+    WHERE (rewards.tenant={{tenant}} or 1=1)
+    AND vouchers.status ='issued'
+    AND vouchers.created_at BETWEEN  date_filter.start_date AND  date_filter.end_date
+    GROUP BY organizations.name, rewards.cost_of_reward
+  variables:
+  - name: start_date
+    type: date
+    display_name: Start Date
+    required: true
+    default: null
+    embedding_param: enabled
+  - name: timezone
+    type: text
+    display_name: Timezone
+    required: true
+    default: Asia/Singapore
+    embedding_param: enabled
+  - name: end_date
+    type: date
+    display_name: End Date
+    required: true
+    default: null
+    embedding_param: enabled
+  - name: tenant
+    type: text
+    display_name: Tenant
+    required: true
+    default: null
+    embedding_param: locked
+  database_id: ${database_id}
+  enable_embedding: true

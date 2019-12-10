@@ -1,0 +1,84 @@
+---
+overview_survey_engagement_rate:
+  name: Overview - Survey Engagement Rate
+  description: Managed by Terraform.
+  native_query: |2
+    WITH date_filter AS (
+        SELECT
+            TIMESTAMP(FORMAT_TIMESTAMP("%Y-%m-%d %H:%M:%S", {{start_date}}), {{timezone}}) AS start_date,
+            TIMESTAMP_ADD(TIMESTAMP(FORMAT_TIMESTAMP("%Y-%m-%d %H:%M:%S", {{end_date}}), {{timezone}}), INTERVAL 24 HOUR) AS end_date
+    ),
+    campaign_user_targeted AS (
+      SELECT
+        campaigns.tenant AS tenant,
+        campaigns.ID AS campaign_id,
+        campaigns.engagement_type,
+        count (DISTINCT cognito_user_pools.user_id ) targeted_users
+      FROM
+        `perx-whistler.whistler_views.campaigns` campaigns
+      INNER JOIN
+        `perx-whistler.whistler_views.comm_events` comm_events
+      ON
+        campaigns.id=comm_events.owner_id
+        AND comm_events.owner_type ='Perx::Campaign:Entity'
+        AND campaigns.tenant =comm_events.tenant
+      INNER JOIN
+        `perx-whistler.whistler_views.cognito_user_pools` cognito_user_pools
+      ON
+        cognito_user_pools.pool_id = comm_events.target_id
+        AND comm_events.target_type='Ros::Cognito::Pool'
+        AND cognito_user_pools.tenant =comm_events.tenant
+    WHERE campaigns.engagement_type ='Perx::Survey::Engagement'
+      GROUP BY
+        1,
+        2,
+        3 ),
+       pvt AS
+       (SELECT
+              'Survey'  AS engagement_type,                             --- campaign_user_targeted.engagement_type AS engagement_type,
+              SUM(campaign_user_targeted.targeted_users)  AS customer_target,
+              count (DISTINCT survey.survey_user_id ) AS engegment_count
+            FROM
+              campaign_user_targeted,date_filter
+            LEFT OUTER JOIN
+              `perx-whistler.whistler_views.survey` survey
+            ON
+              survey.survey_campaign_entity_id =campaign_user_targeted.campaign_id
+              AND campaign_user_targeted.engagement_type ='Perx::Survey::Engagement'
+              AND survey.tenant=campaign_user_targeted.tenant
+              AND survey_updated_at BETWEEN  date_filter.start_date AND date_filter.end_date
+            WHERE (survey.tenant={{tenant}} or 1=1)
+            GROUP BY
+              1
+    )
+    SELECT 'Engaged' AS Name ,engegment_count AS engegment_count FROM pvt
+    UNION ALL
+    SELECT 'Non - Engaged' AS Name,customer_target-engegment_count AS engegment_count FROM pvt
+    ORDER BY 1
+  variables:
+  - name: start_date
+    type: date
+    display_name: Start Date
+    required: true
+    default: null
+    embedding_param: enabled
+  - name: timezone
+    type: text
+    display_name: Timestamp
+    required: true
+    default: Asia/Singapore
+    embedding_param: enabled
+  - name: end_date
+    type: date
+    display_name: End Date
+    required: true
+    default: null
+    embedding_param: enabled
+  - name: tenant
+    type: text
+    display_name: Tenant
+    required: true
+    default: null
+    embedding_param: locked
+  database_id: ${database_id}
+  enable_embedding: true

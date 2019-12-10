@@ -1,0 +1,82 @@
+---
+overview_stamp_engagement_rate:
+  name: Overview - Stamp Engagement Rate
+  description:
+  native_query: |2
+    WITH date_filter AS (
+        SELECT
+            TIMESTAMP(FORMAT_TIMESTAMP("%Y-%m-%d %H:%M:%S", {{start_date}}), {{timezone}}) AS start_date,
+            TIMESTAMP_ADD(TIMESTAMP(FORMAT_TIMESTAMP("%Y-%m-%d %H:%M:%S", {{end_date}}), {{timezone}}), INTERVAL 24 HOUR) AS end_date
+    ),
+    campaign_user_targeted AS (
+      SELECT
+        campaigns.tenant AS tenant,
+        campaigns.ID AS campaign_id,
+        campaigns.engagement_type,
+        count (DISTINCT cognito_user_pools.user_id ) targeted_users
+      FROM
+        `perx-whistler.whistler_views.campaigns` campaigns
+      INNER JOIN
+        `perx-whistler.whistler_views.comm_events` comm_events
+      ON
+        campaigns.id=comm_events.owner_id
+        AND comm_events.owner_type ='Perx::Campaign:Entity'
+        AND campaigns.tenant =comm_events.tenant
+      INNER JOIN
+        `perx-whistler.whistler_views.cognito_user_pools` cognito_user_pools
+      ON
+        cognito_user_pools.pool_id = comm_events.target_id
+        AND comm_events.target_type='Ros::Cognito::Pool'
+        AND cognito_user_pools.tenant =comm_events.tenant
+    WHERE campaigns.engagement_type ='Perx::Loyalty::Engagement'
+      GROUP BY
+        1,
+        2,
+        3 )
+    SELECT 'Engaged'  AS engagement_type, 1000 engegment_count
+    UNION ALL
+    SELECT 'Non - Engaged'  AS engagement_type,50 engegment_count
+    ORDER BY 1
+        -- SELECT
+        --       'Stamp'  AS engagement_type,                             --- campaign_user_targeted.engagement_type AS engagement_type,
+        --       SUM(campaign_user_targeted.targeted_users)  AS customer_target,
+        --       count (DISTINCT survey.survey_user_id ) AS engegment_count
+        --     FROM
+        --       campaign_user_targeted,date_filter
+        --     INNER JOIN
+        --       `perx-whistler.whistler_views.loyalty`  loyalty
+        --     ON
+        --       loyalty.ca =campaign_user_targeted.campaign_id
+        --       AND campaign_user_targeted.engagement_type ='Perx::Loyalty::Engagement'
+        --       AND survey.tenant=campaign_user_targeted.tenant
+        --     WHERE (survey.tenant={{tenant}} or 1=1)
+        --     AND survey_updated_at BETWEEN  date_filter.start_date AND date_filter.end_date
+        --     GROUP BY
+        --       1
+  variables:
+  - name: start_date
+    type: date
+    display_name: Start Date
+    required: true
+    default: null
+    embedding_param: enabled
+  - name: timezone
+    type: text
+    display_name: Timezone
+    required: true
+    default: Asia/Singapore
+    embedding_param: enabled
+  - name: end_date
+    type: date
+    display_name: End Date
+    required: true
+    default: null
+    embedding_param: enabled
+  - name: tenant
+    type: text
+    display_name: Tenant
+    required: true
+    default: null
+    embedding_param: locked
+  database_id: ${database_id}
+  enable_embedding: true
