@@ -11,7 +11,7 @@ overview_total_active_customer_breakdown:
     returning_user AS
     (
     SELECT cognito_user_id
-    FROM  `whistler_views.http_log`, date_filter
+    FROM  `warehouse_views${suffix}.http_log`, date_filter
     WHERE (CAST(tenant AS STRING)={{tenant}}  or 1=1)
     AND request_time BETWEEN  date_filter.end_date AND TIMESTAMP_SUB(date_filter.end_date, INTERVAL 32 DAY )
     )
@@ -21,7 +21,7 @@ overview_total_active_customer_breakdown:
            ELSE TIMESTAMP_TRUNC(request_time, MONTH)  END AS date,
               COUNT(DISTINCT (CASE WHEN returning_user.cognito_user_id IS NULL THEN log.cognito_user_id ELSE NULL END ) ) AS new_user,
               COUNT(DISTINCT (CASE WHEN returning_user.cognito_user_id IS NOT NULL THEN log.cognito_user_id ELSE NULL END ) ) AS returning_user
-    FROM  `whistler_views.http_log` log, date_filter
+    FROM  `warehouse_views${suffix}.http_log` log, date_filter
     LEFT OUTER JOIN returning_user
     ON log.cognito_user_id=returning_user.cognito_user_id
     WHERE (CAST(tenant AS STRING)={{tenant}} OR 1=1)

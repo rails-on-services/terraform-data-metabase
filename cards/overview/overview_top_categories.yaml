@@ -11,8 +11,8 @@ overview_top_categories:
     SELECT  reward.category AS `category`,
             SUM(CASE WHEN voucher.status IN ('issued', 'redeemed','expired') THEN 1 ELSE 0 END)  AS `issued_count`,
             SUM(CASE WHEN voucher.status ='redeemed' THEN 1 ELSE 0 END) AS `redeemed_count`
-    FROM `perx-whistler.whistler_views.rewards` AS reward,date_filter
-    INNER JOIN `perx-whistler.whistler_views.vouchers` AS voucher
+    FROM `warehouse_views${suffix}.rewards` AS reward,date_filter
+    INNER JOIN `warehouse_views${suffix}.vouchers` AS voucher
     ON  reward.id =voucher.source_id AND voucher.source_type='Perx::Reward::Entity'
     AND reward.tenant=voucher.tenant
     WHERE   (reward.tenant={{tenant}}  or 1=1)
@@ -43,7 +43,7 @@ overview_top_categories:
     embedding_param: enabled
   - name: tenant
     type: text
-    display_name: 'Tenant'
+    display_name: Tenant
     required: true
     default: null
     embedding_param: locked

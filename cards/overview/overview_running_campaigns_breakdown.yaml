@@ -1,7 +1,7 @@
 ---
 overview_running_campaigns_breakdown:
   name: Overview - Running Campaigns Breakdown
-  description:
+  description: Managed by Terraform.
   native_query: |2
     WITH
       date_filter AS (
@@ -13,7 +13,7 @@ overview_running_campaigns_breakdown:
          games.game_user_id  AS id,
          games.game_updated_at AS DATE
       FROM
-        `perx-whistler.whistler_views.games` games,
+        `warehouse_views${suffix}.games` games,
         date_filter
       WHERE
         (games.tenant={{tenant}}
@@ -26,7 +26,7 @@ overview_running_campaigns_breakdown:
           survey.survey_user_id  AS id,
           survey.survey_updated_at AS date
       FROM
-        `perx-whistler.whistler_views.survey` survey,
+        `warehouse_views${suffix}.survey` survey,
         date_filter
       WHERE
         (survey.tenant={{tenant}}
@@ -39,7 +39,7 @@ overview_running_campaigns_breakdown:
        instant_outcomes.instant_outcome_transaction_user_id   AS id,
        instant_outcomes.instant_outcome_transaction_updated_at AS date
       FROM
-        `perx-whistler.whistler_views.instant_outcomes` instant_outcomes,
+        `warehouse_views${suffix}.instant_outcomes` instant_outcomes,
         date_filter
       WHERE
         (instant_outcomes.tenant={{tenant}}
@@ -51,7 +51,7 @@ overview_running_campaigns_breakdown:
     (
       SELECT reward.id as reward,
       reward.updated_at as date
-      FROM `perx-whistler.whistler_views.vouchers` reward,date_filter
+      FROM `warehouse_views${suffix}.vouchers` reward,date_filter
       WHERE status ='redeemed'
       AND  (reward.tenant={{tenant}}
           OR 1=1)
@@ -79,7 +79,7 @@ overview_running_campaigns_breakdown:
   variables:
   - name: start_date
     type: date
-    display_name: 'Start Date'
+    display_name: Start Date
     required: true
     default: null
     embedding_param: enabled

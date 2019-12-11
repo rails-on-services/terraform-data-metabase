@@ -21,7 +21,7 @@ overview_popular_redemption_day:
             ELSE 'Unknown'
         END AS `time`,
         count(*) as count
-    FROM `perx-whistler.whistler_views.vouchers` vouchers, date_filter
+    FROM `warehouse_views${suffix}.vouchers` vouchers, date_filter
     WHERE
        -- (rewards.tenant={{tenant}} OR 1=1) AND
         vouchers.status ='redeemed'

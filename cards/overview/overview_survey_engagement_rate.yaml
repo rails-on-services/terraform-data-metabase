@@ -15,15 +15,15 @@ overview_survey_engagement_rate:
         campaigns.engagement_type,
         count (DISTINCT cognito_user_pools.user_id ) targeted_users
       FROM
-        `perx-whistler.whistler_views.campaigns` campaigns
+        `warehouse_views${suffix}.campaigns` campaigns
       INNER JOIN
-        `perx-whistler.whistler_views.comm_events` comm_events
+        `warehouse_views${suffix}.comm_events` comm_events
       ON
         campaigns.id=comm_events.owner_id
         AND comm_events.owner_type ='Perx::Campaign:Entity'
         AND campaigns.tenant =comm_events.tenant
       INNER JOIN
-        `perx-whistler.whistler_views.cognito_user_pools` cognito_user_pools
+        `warehouse_views${suffix}.cognito_user_pools` cognito_user_pools
       ON
         cognito_user_pools.pool_id = comm_events.target_id
         AND comm_events.target_type='Ros::Cognito::Pool'
@@ -41,7 +41,7 @@ overview_survey_engagement_rate:
             FROM
               campaign_user_targeted,date_filter
             LEFT OUTER JOIN
-              `perx-whistler.whistler_views.survey` survey
+              `warehouse_views${suffix}.survey` survey
             ON
               survey.survey_campaign_entity_id =campaign_user_targeted.campaign_id
               AND campaign_user_targeted.engagement_type ='Perx::Survey::Engagement'

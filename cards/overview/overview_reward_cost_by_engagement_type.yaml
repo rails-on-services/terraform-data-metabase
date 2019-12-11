@@ -13,13 +13,13 @@ overview_reward_cost_by_engagement_type:
       RTRIM(LTRIM (actual_outcomes.source_type,'Perx::'),'::Transaction'),
       SUM(reward.cost_of_reward )
     FROM
-      `perx-whistler.whistler_views.actual_outcomes` actual_outcomes,date_filter
+      `warehouse_views${suffix}.actual_outcomes` actual_outcomes,date_filter
     INNER JOIN
-      `perx-whistler.whistler_views.vouchers` vouchers
+      `warehouse_views${suffix}.vouchers` vouchers
     ON actual_outcomes.result_id = vouchers.id
     AND actual_outcomes.result_type ='Perx::VoucherService::Voucher'
     AND actual_outcomes.tenant =vouchers.tenant
-    INNER JOIN `perx-whistler.whistler_views.rewards` reward
+    INNER JOIN `warehouse_views${suffix}.rewards` reward
     ON reward.id =vouchers.source_id  AND vouchers.source_type ='Perx::Reward::Entity'
     AND reward.tenant =vouchers.tenant
     WHERE

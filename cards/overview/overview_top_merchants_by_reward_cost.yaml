@@ -10,10 +10,10 @@ overview_top_merchant_by_reward_cost:
     )
     SELECT organizations.name  AS`merchant_name`,
            rewards.cost_of_reward *COUNT(vouchers.id ) as `revenue`
-    FROM `perx-whistler.whistler_views.rewards` AS rewards,date_filter
-    INNER JOIN `perx-whistler.whistler_views.organizations` AS organizations
+    FROM `warehouse_views${suffix}.rewards` AS rewards,date_filter
+    INNER JOIN `warehouse_views${suffix}.organizations` AS organizations
     ON rewards.organization_id =organizations.id AND rewards.tenant =organizations.tenant
-    INNER JOIN `perx-whistler.whistler_views.vouchers`AS  vouchers
+    INNER JOIN `warehouse_views${suffix}.vouchers`AS  vouchers
     ON rewards.id =vouchers.source_id AND vouchers.source_type='Perx::Reward::Entity'
     AND rewards.tenant=vouchers.tenant
     WHERE (rewards.tenant={{tenant}} or 1=1)

@@ -22,19 +22,19 @@ overview_popular_engagement_day:
         END AS `time`,
        sum(count) AS `count`
     FROM
-         ( SELECT game_updated_at  AS updated_at , count (*)  as count FROM `perx-whistler.whistler_views.games` ,date_filter
+         ( SELECT game_updated_at  AS updated_at , count (*)  as count FROM `warehouse_views${suffix}.games` ,date_filter
                                     WHERE (tenant={{tenant}} or 1=1) AND game_updated_at BETWEEN  date_filter.start_date AND date_filter.end_date
                                     GROUP BY 1
             UNION ALL
-            SELECT survey_updated_at AS updated_at, count (*)  as count    FROM `perx-whistler.whistler_views.survey` ,date_filter
+            SELECT survey_updated_at AS updated_at, count (*)  as count    FROM `warehouse_views${suffix}.survey` ,date_filter
                                      WHERE (tenant={{tenant}} or 1=1) AND survey_updated_at BETWEEN  date_filter.start_date AND date_filter.end_date
                                       GROUP BY 1
             UNION ALL
-            SELECT instant_outcome_transaction_updated_at AS updated_at , count (*)  as count  FROM `perx-whistler.whistler_views.instant_outcomes` ,date_filter 
+            SELECT instant_outcome_transaction_updated_at AS updated_at , count (*)  as count  FROM `warehouse_views${suffix}.instant_outcomes` ,date_filter
                                      WHERE (tenant={{tenant}} or 1=1) AND instant_outcome_transaction_updated_at BETWEEN  date_filter.start_date AND date_filter.end_date
                                       GROUP BY 1
             UNION ALL
-            SELECT updated_at AS updated_at , count (*)  as count  FROM `perx-whistler.whistler_views.loyalty`  ,date_filter
+            SELECT updated_at AS updated_at , count (*)  as count  FROM `warehouse_views${suffix}.loyalty`  ,date_filter
                             WHERE (tenant={{tenant}} or 1=1) AND updated_at BETWEEN  date_filter.start_date AND date_filter.end_date
                              GROUP BY 1
           )  engagment
@@ -43,7 +43,7 @@ overview_popular_engagement_day:
   variables:
   - name: start_date
     type: date
-    display_name: 'Start Date '
+    display_name: Start Date
     required: true
     default: null
     embedding_param: enabled

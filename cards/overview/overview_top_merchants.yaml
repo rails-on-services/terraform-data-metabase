@@ -11,10 +11,10 @@ overview_top_merchants:
     SELECT
         ifnull(organizations.name,'Unknown') AS `merchant_name`,
         sum(voucher.id *reward.cost_of_reward)  AS `revenue`
-    FROM `perx-whistler.whistler_views.rewards` AS reward,date_filter
-    INNER JOIN `perx-whistler.whistler_views.vouchers` AS voucher
+    FROM `warehouse_views${suffix}.rewards` AS reward,date_filter
+    INNER JOIN `warehouse_views${suffix}.vouchers` AS voucher
     ON reward.id =voucher.source_id AND voucher.source_type='Perx::Reward::Entity'  AND reward.tenant=voucher.tenant
-    LEFT OUTER JOIN `perx-whistler.whistler_views.organizations` AS organizations
+    LEFT OUTER JOIN `warehouse_views${suffix}.organizations` AS organizations
     ON organizations.id=reward.organization_id AND reward.tenant=organizations.tenant
     WHERE   (reward.tenant={{tenant}}  or 1=1)
     AND voucher.status IN ('issued','redeemed','expired')

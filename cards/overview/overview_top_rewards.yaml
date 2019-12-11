@@ -13,8 +13,8 @@ overview_top_rewards:
         SUM(CASE WHEN vouchers.status IN ('issued','redeemed','expired') THEN 1 ELSE 0 END)*cost_of_reward  AS  `issued_count`,
         SUM(CASE WHEN vouchers.status ='redeemed' THEN 1 ELSE 0 END) *cost_of_reward                        AS  `redeemed_count`
     FROM
-        `perx-whistler.whistler_views.rewards`  reward, date_filter
-    INNER JOIN `perx-whistler.whistler_views.vouchers` vouchers
+        `warehouse_views${suffix}.rewards`  reward, date_filter
+    INNER JOIN `warehouse_views${suffix}.vouchers` vouchers
     ON reward.id =vouchers.source_id AND vouchers.source_type='Perx::Reward::Entity' AND reward.tenant=vouchers.tenant
     WHERE
       --  (reward_transaction.tenant={{tenant}} or 1=1) AND

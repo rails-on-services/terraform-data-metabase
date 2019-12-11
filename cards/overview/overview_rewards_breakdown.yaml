@@ -1,7 +1,7 @@
 ---
 overview_rewards_breakdown:
   name: Overview - Rewards Breakdown
-  description: Managed by Terraform
+  description: Managed by Terraform.
   native_query: |2
     WITH date_filter AS (
         SELECT
@@ -16,7 +16,7 @@ overview_rewards_breakdown:
        -- Date(vouchers.updated_at),
         SUM(IF(vouchers.status  IN ('issued','redeemed','expired'), 1, 0)) AS `issued_count`,
         SUM(IF(vouchers.status ='redeemed', 1, 0)) AS `redeemed_count`
-    FROM `perx-whistler.whistler_views.vouchers` vouchers, date_filter
+    FROM `warehouse_views${suffix}.vouchers` vouchers, date_filter
     WHERE
        -- (vouchers.tenant={{tenant}} OR 1=1) AND
      vouchers.updated_at BETWEEN date_filter.start_date AND date_filter.end_date

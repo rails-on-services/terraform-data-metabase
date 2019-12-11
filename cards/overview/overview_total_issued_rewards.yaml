@@ -1,7 +1,7 @@
 ---
 overview_total_issued_rewards:
   name: Overview - Total Issued Rewards
-  description: Managed by Terraform
+  description: Managed by Terraform.
   native_query: |2
     WITH date_filter AS (
         SELECT
@@ -10,7 +10,7 @@ overview_total_issued_rewards:
     )
     SELECT
        count(*) as count
-    FROM `perx-whistler.whistler_views.vouchers` vouchers, date_filter
+    FROM `warehouse_views${suffix}.vouchers` vouchers, date_filter
     WHERE
        -- (vouchers.tenant={{tenant}} OR 1=1) AND
         vouchers.status  IN ('issued', 'redeemed','expired')

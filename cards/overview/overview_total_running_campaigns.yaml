@@ -11,7 +11,7 @@ overview_total_running_campaigns:
     SELECT
         count(*) AS count
     FROM
-     `perx-whistler.whistler_views.campaigns`  AS campaigns , date_filter
+     `warehouse_views${suffix}.campaigns`  AS campaigns , date_filter
     WHERE
         --(campaigns.tenant={{tenant}} or  1=1) AND
         ((campaigns.start_date_time BETWEEN  date_filter.start_date AND date_filter.end_date) OR (campaigns.end_date_time BETWEEN  date_filter.start_date AND date_filter.end_date ))
@@ -19,7 +19,7 @@ overview_total_running_campaigns:
   variables:
   - name: start_date
     type: date
-    display_name: 'Start Date'
+    display_name: Start Date
     required: true
     default: null
     embedding_param: enabled
@@ -37,7 +37,7 @@ overview_total_running_campaigns:
     embedding_param: enabled
   - name: tenant
     type: text
-    display_name: 'Tenant'
+    display_name: Tenant
     required: true
     default: null
     embedding_param: locked
