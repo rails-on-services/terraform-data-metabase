@@ -1,3 +1,4 @@
+# Get Metabase auth token
 data "external" "metabase-session" {
   program = [
     "curl", "-X", "POST", "https://${var.metabase_host}/api/session",
@@ -9,6 +10,7 @@ data "external" "metabase-session" {
   ]
 }
 
+# Get Whistler backend auth token
 data "external" "backend-session" {
   program = ["python3", "${path.module}/files/backend_auth.py"]
 
@@ -20,10 +22,7 @@ data "external" "backend-session" {
   }
 }
 
-# output "backend-session" {
-#   value = data.external.backend-session.result.authorization
-# }
-
+# Metabase REST API provider
 provider "restapi" {
   uri = "https://${var.metabase_host}/api"
   headers = {
@@ -33,6 +32,7 @@ provider "restapi" {
   write_returns_object = true
 }
 
+# Whistler backend REST API provider
 provider "restapi" {
   alias = "backend"
   uri = "https://${var.backend_host}/cognito"
@@ -43,9 +43,9 @@ provider "restapi" {
   write_returns_object = true
 }
 
+# Create collection and cards on Metabase
 module "metabase_analysis" {
   source                 = "github.com/PerxTech/terraform-metabase-analytics"
-  #source = "/Users/perx/Desktop/Repositories/terraform-metabase-analytics"
   metabase_cards         = local.metabase_cards
 
   metabase_collection = {
@@ -56,10 +56,7 @@ module "metabase_analysis" {
   }
 }
 
-output "metabase_analysis" {
-  value = module.metabase_analysis.cards_mapping
-}
-
+# Cards mapping on Whistler backend
 resource "restapi_object" "metabase_cards" {
   provider = restapi.backend
   path     = "/metabase_cards"
