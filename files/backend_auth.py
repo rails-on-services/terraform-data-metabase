@@ -18,7 +18,7 @@ def external_data():
   password   = input_dict["password"]
 
   payload = json.loads('{{"data":{{"attributes":{{"account_id":"{0}","password":"{1}","username":"{2}"}}}}}}'.format(account_id,password,username))
-  url = 'https://{}/iam/users/sign_in'.format(backend_host)
+  url = '{}/iam/users/sign_in'.format(backend_host)
 
   # Prepare request
   jsondata = json.dumps(payload)

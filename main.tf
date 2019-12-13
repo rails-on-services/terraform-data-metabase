@@ -1,13 +1,3 @@
-# terraform {
-#   backend "s3" {
-#     bucket         = "terraform-state-whistler"
-#      key            = "metabase-uat"
-#      region         = "ap-southeast-1"
-#      dynamodb_table = "terraform-lock"
-#     profile        = "perx-whistler"
-#   }
-# }
-
 data "external" "metabase-session" {
   program = [
     "curl", "-X", "POST", "https://${var.metabase_host}/api/session",
@@ -24,15 +14,15 @@ data "external" "backend-session" {
 
   query = {
     backend_host = var.backend_host,
-    account_id = var.backend_account_id,
-    username   = var.backend_user,
-    password   = var.backend_password
+    account_id   = var.backend_account_id,
+    username     = var.backend_user,
+    password     = var.backend_password
   }
 }
 
-output "backend-session" {
-  value = data.external.backend-session.result.authorization
-}
+# output "backend-session" {
+#   value = data.external.backend-session.result.authorization
+# }
 
 provider "restapi" {
   uri = "https://${var.metabase_host}/api"
@@ -54,11 +44,11 @@ provider "restapi" {
 }
 
 module "metabase_analysis" {
-  # source                 = "github.com/PerxTech/terraform-metabase-analytics"
-  source = "/Users/perx/Desktop/Repositories/terraform-metabase-analytics"
+  source                 = "github.com/PerxTech/terraform-metabase-analytics"
+  #source = "/Users/perx/Desktop/Repositories/terraform-metabase-analytics"
   metabase_cards         = local.metabase_cards
 
-  metabase_collection    = {
+  metabase_collection = {
       name        = "BI Whistler ${local.collection_name_suffix}",
       color       = "#509EE3",
       description = "Cards for Whistler ${local.collection_name_suffix} environment",
