@@ -57,3 +57,9 @@ variable "metabase_feature_set" {
   default     = ""
   description = "[Optional] Environment feature set"
 }
+
+variable "metabase_cards_repo_path" {
+  type        = string
+  default     = ""
+  description = "[Required] Relative path to cards folders"
+}
