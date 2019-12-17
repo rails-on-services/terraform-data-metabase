@@ -1,5 +1,5 @@
 locals{
-  cards_path                = "${var.metabase_cards_repo_path/metabase}"
+  cards_path                = "${var.data_repo_path/metabase}"
   collection_name_suffix    = var.metabase_feature_set == "" ? var.metabase_profile : "${var.metabase_profile}_${var.metabase_feature_set}"
   dataset_suffix            = var.metabase_feature_set == "" ? "" : "_${var.metabase_feature_set}"
   metabase_cards_yaml_files = fileset(local.cards_path, "**/*.yaml")
