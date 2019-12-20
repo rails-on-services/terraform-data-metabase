@@ -37,9 +37,10 @@ provider "restapi" {
   alias = "backend"
   uri = "${var.backend_host}/cognito"
   headers = {
-    authorization = data.external.backend-session.result.authorization
+    authorization = data.external.backend-session.result.authorization,
+    Content-Type  = "application/vnd.api+json"
   }
-  id_attribute         = "id"
+  id_attribute         = "data/id"
   write_returns_object = true
 }
 
