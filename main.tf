@@ -35,7 +35,7 @@ provider "restapi" {
 # Whistler backend REST API provider
 provider "restapi" {
   alias = "backend"
-  uri = "https://${var.backend_host}/cognito"
+  uri = "${var.backend_host}/cognito"
   headers = {
     authorization = data.external.backend-session.result.authorization
   }
