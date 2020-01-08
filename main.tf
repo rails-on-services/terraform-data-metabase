@@ -66,7 +66,7 @@ resource "restapi_object" "metabase_cards" {
   data  = jsonencode({
     data = {
       type = "metabase_cards",
-      attribute = {
+      attributes = {
         identifier = each.key,
         card_id = each.value
       }
