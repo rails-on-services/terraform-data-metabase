@@ -5,4 +5,10 @@ locals{
   metabase_cards_yaml_files = fileset(local.cards_path, "**/*.yaml")
   metabase_card_maps        = [for card_yaml_file_path in local.metabase_cards_yaml_files : yamldecode(templatefile("${local.cards_path}/${card_yaml_file_path}", {suffix = local.dataset_suffix, database_id = var.metabase_database_id}))]
   metabase_cards            = zipmap(flatten([for cards in local.metabase_card_maps : [for card_name, card_details in cards : card_name]]), flatten([for cards in local.metabase_card_maps : [for card_name, card_details in cards : card_details]]))
+  metabase_collection       = {
+      name        = "BI Whistler ${local.collection_name_suffix}",
+      color       = "#509EE3",
+      description = "Cards for Whistler ${local.collection_name_suffix} environment",
+      parent_id   = null
+  }
 }

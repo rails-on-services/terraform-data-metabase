@@ -45,31 +45,97 @@ provider "restapi" {
 }
 
 # Create collection and cards on Metabase
-module "metabase_analysis" {
-  source                 = "github.com/PerxTech/terraform-metabase-analytics"
-  metabase_cards         = local.metabase_cards
+resource "restapi_object" "collection" {
+  path  = "/collection"
+  data  = jsonencode(local.metabase_collection)
+}
 
-  metabase_collection = {
-      name        = "BI Whistler ${local.collection_name_suffix}",
-      color       = "#509EE3",
-      description = "Cards for Whistler ${local.collection_name_suffix} environment",
-      parent_id   = null
+resource "random_uuid" "variable-uuid" {
+  for_each = local.metabase_cards
+}
+
+# Create initial metabase card that will be updated with null_resource.put_metabase_card
+resource "restapi_object" "cards" {
+  for_each = local.metabase_cards
+  path     = "/card"
+  data = jsonencode({
+    name = each.value.name
+    dataset_query = {
+      native = {
+        query = ""
+      }
+      type     = "native"
+      database = tonumber(each.value.database_id)
+    }
+    display                = "table"
+    visualization_settings = {}
+  })
+}
+
+resource "local_file" "json_card" {
+  for_each = restapi_object.cards
+  filename = "${local.cards_path}/${each.key}.json"
+  content  = jsonencode({
+    name = each.key
+    dataset_query = {
+      native = {
+        query = lookup(local.metabase_cards, each.key).native_query
+        template-tags = {
+          for index, variable in lookup(local.metabase_cards, each.key).variables :
+          variable.name => {
+            id           = "${substr(random_uuid.variable-uuid[each.key].result, 0, 35)}${format("%02d", index)}"
+            name         = variable.name
+            type         = variable.type
+            required     = variable.required
+            display_name = variable.display_name
+            display-name = variable.display_name
+            default      = variable.default
+          }
+        }
+      }
+      type     = "native"
+      database = tonumber(lookup(local.metabase_cards, each.key).database_id)
+    }
+    display                = "table"
+    description            = lookup(local.metabase_cards, each.key).description
+    collection_id          = tonumber(local.metabase_collection_id)
+    visualization_settings = lookup(lookup(local.metabase_cards, each.key), "visualization_settings", {})
+    embedding_params = {
+      for variable in lookup(local.metabase_cards, each.key).variables :
+      variable.name => variable.embedding_param
+    }
+    enable_embedding = lookup(local.metabase_cards, each.key).enable_embedding
+  })
+}
+
+resource "null_resource" "put_metabase_card" {
+  for_each = restapi_object.cards
+  provisioner "local-exec" {
+    command = <<EOS
+curl -X PUT https://metabase.perxtech.io/api/card/${each.value.id} \
+-H "X-Metabase-Session: ${data.external.metabase-session.result.id}" \
+-H "Content-Type: application/json" \
+-d @${lookup(local_file.json_card, each.key).filename}
+EOS
+  }
+  triggers = {
+    always_run = "${timestamp()}"
   }
 }
 
 # Cards mapping on Whistler backend
-resource "restapi_object" "metabase_cards" {
-  provider = restapi.backend
-  path     = "/metabase_cards"
-  for_each = module.metabase_analysis.cards_mapping
+# resource "restapi_object" "metabase_cards" {
+#   provider = restapi.backend
+#   path     = "/metabase_cards"
+#   for_each = module.metabase_analysis.cards_mapping
 
-  data  = jsonencode({
-    data = {
-      type = "metabase_cards",
-      attributes = {
-        identifier = each.key,
-        card_id = each.value
-      }
-    }
-  })
-}
+#   data  = jsonencode({
+#     data = {
+#       type = "metabase_cards",
+#       attributes = {
+#         identifier = each.key,
+#         card_id = each.value
+#       }
+#     }
+#   })
+# }
