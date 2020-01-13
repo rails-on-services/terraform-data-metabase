@@ -76,7 +76,7 @@ resource "local_file" "json_card" {
   for_each = restapi_object.cards
   filename = "${local.cards_path}/${each.key}.json"
   content  = jsonencode({
-    name = each.key
+    name = lookup(local.metabase_cards, each.key).name
     dataset_query = {
       native = {
         query = lookup(local.metabase_cards, each.key).native_query
@@ -98,7 +98,7 @@ resource "local_file" "json_card" {
     }
     display                = "table"
     description            = lookup(local.metabase_cards, each.key).description
-    collection_id          = tonumber(local.metabase_collection_id)
+    collection_id          = tonumber(restapi_object.collection.id)
     visualization_settings = lookup(lookup(local.metabase_cards, each.key), "visualization_settings", {})
     embedding_params = {
       for variable in lookup(local.metabase_cards, each.key).variables :
@@ -124,18 +124,18 @@ EOS
 }
 
 # Cards mapping on Whistler backend
-# resource "restapi_object" "metabase_cards" {
-#   provider = restapi.backend
-#   path     = "/metabase_cards"
-#   for_each = module.metabase_analysis.cards_mapping
+resource "restapi_object" "metabase_cards_mapping" {
+  provider = restapi.backend
+  path     = "/metabase_cards"
+  for_each = restapi_object.cards
 
-#   data  = jsonencode({
-#     data = {
-#       type = "metabase_cards",
-#       attributes = {
-#         identifier = each.key,
-#         card_id = each.value
-#       }
-#     }
-#   })
-# }
+  data  = jsonencode({
+    data = {
+      type = "metabase_cards",
+      attributes = {
+        identifier = each.key,
+        card_id = each.value.id
+      }
+    }
+  })
+}
